@@ -103,7 +103,10 @@ export default function Home() {
 
       {videoUrl && (
         <div className="mt-8">
-          <video controls className="max-w-lg">
+          <video 
+            controls 
+            className="max-h-[70vh] w-auto"
+          >
             <source src={videoUrl} type="video/mp4" />
             Your browser does not support the video tag.
           </video>
