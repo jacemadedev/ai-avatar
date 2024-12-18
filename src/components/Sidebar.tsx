@@ -1,12 +1,19 @@
 import Link from 'next/link';
+import {
+  LayoutDashboard,
+  Video,
+  FileVideo,
+  Files,
+  Settings
+} from 'lucide-react';
 
 const Sidebar = () => {
   const menuItems = [
-    { title: 'Dashboard', href: '/', icon: '📊' },
-    { title: 'Create Video', href: '/create', icon: '🎥' },
-    { title: 'My Videos', href: '/videos', icon: '📼' },
-    { title: 'Templates', href: '/templates', icon: '📋' },
-    { title: 'Settings', href: '/settings', icon: '⚙️' },
+    { title: 'Dashboard', href: '/', icon: LayoutDashboard },
+    { title: 'Create Video', href: '/create', icon: Video },
+    { title: 'My Videos', href: '/videos', icon: FileVideo },
+    { title: 'Templates', href: '/templates', icon: Files },
+    { title: 'Settings', href: '/settings', icon: Settings },
   ];
 
   return (
@@ -23,7 +30,7 @@ const Sidebar = () => {
                 href={item.href}
                 className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
               >
-                <span className="text-xl">{item.icon}</span>
+                <item.icon className="w-5 h-5" />
                 <span>{item.title}</span>
               </Link>
             </li>
