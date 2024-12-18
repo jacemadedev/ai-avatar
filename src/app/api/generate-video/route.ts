@@ -1,26 +1,32 @@
 import { NextResponse } from 'next/server';
+import { AVATARS } from '@/types';
 
 export async function POST(request: Request) {
   try {
-    const { text } = await request.json();
+    const { text, avatar, voice, background } = await request.json();
 
     const requestBody = {
       video_inputs: [
         {
           character: {
             type: 'avatar',
-            avatar_id: 'Daisy-inskirt-20220818',
-            avatar_style: 'normal'
+            avatar_id: avatar.id,
+            avatar_style: avatar.style
           },
-          voice: {
+          voice: voice.id ? {
             type: 'text',
             input_text: text,
-            voice_id: '2d5b0e6cf36f460aa7fc47e3eee4ba54'
+            voice_id: voice.id
+          } : {
+            type: 'text',
+            input_text: text
           },
-          background: {
-            type: 'color',
-            value: '#008000'
-          }
+          ...(AVATARS.find((a) => a.id === avatar.id)?.hasDefaultBackground ? {} : {
+            background: {
+              type: background.type,
+              value: background.value
+            }
+          })
         }
       ],
       dimension: {

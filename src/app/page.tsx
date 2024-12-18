@@ -1,117 +1,58 @@
-'use client';
-import { useState } from 'react';
-
 export default function Home() {
-  const [videoUrl, setVideoUrl] = useState<string>('');
-  const [status, setStatus] = useState<string>('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string>('');
-
-  const generateVideo = async () => {
-    try {
-      setLoading(true);
-      setError('');
-      const response = await fetch('/api/generate-video', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          text: 'Welcome to my HeyGen demo!',
-        }),
-      });
-      
-      const data = await response.json();
-      
-      if (data.error) {
-        throw new Error(data.error);
-      }
-      
-      if (!data.video_id) {
-        throw new Error('No video ID received');
-      }
-
-      checkVideoStatus(data.video_id);
-    } catch (error) {
-      console.error('Error generating video:', error);
-      setError(error instanceof Error ? error.message : 'Error generating video');
-      setLoading(false);
-    }
-  };
-
-  const checkVideoStatus = async (id: string) => {
-    try {
-      const response = await fetch(`/api/video-status?videoId=${id}`);
-      const data = await response.json();
-      console.log('Status check response:', data);
-      
-      if (data.error) {
-        throw new Error(data.error);
-      }
-      
-      setStatus(data.status || 'unknown');
-      
-      switch (data.status) {
-        case 'completed':
-          setVideoUrl(data.video_url);
-          setLoading(false);
-          break;
-        case 'failed':
-          setError(data.error?.message || 'Video generation failed');
-          setLoading(false);
-          break;
-        case 'processing':
-        case 'pending':
-        case 'waiting':
-          setTimeout(() => checkVideoStatus(id), 5000);
-          break;
-        default:
-          console.warn('Unknown status:', data.status);
-          setError(`Unknown status received: ${data.status}`);
-          setLoading(false);
-      }
-    } catch (error) {
-      console.error('Error checking status:', error);
-      setError(error instanceof Error ? error.message : 'Error checking status');
-      setLoading(false);
-    }
-  };
-
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-8">
-      <h1 className="text-2xl font-bold mb-8">HeyGen API Demo</h1>
-      
-      <button
-        onClick={generateVideo}
-        disabled={loading}
-        className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-gray-400"
-      >
-        {loading ? 'Generating...' : 'Generate Video'}
-      </button>
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <DashboardCard
+          title="Total Videos"
+          value="12"
+          icon="🎥"
+          trend="+33%"
+        />
+        <DashboardCard
+          title="Processing"
+          value="2"
+          icon="⚙️"
+          trend="-10%"
+        />
+        <DashboardCard
+          title="Storage Used"
+          value="1.2 GB"
+          icon="💾"
+          trend="+5%"
+        />
+      </div>
 
-      {status && (
-        <div className="mt-4 text-center">
-          <p>Status: {status}</p>
+      <div className="bg-white dark:bg-gray-800 rounded-lg p-6">
+        <h2 className="text-xl font-semibold mb-4">Recent Videos</h2>
+        <div className="space-y-4">
+          {/* Placeholder for recent videos */}
+          <p className="text-gray-500 dark:text-gray-400">No videos yet</p>
         </div>
-      )}
+      </div>
+    </div>
+  );
+}
 
-      {error && (
-        <div className="mt-4 text-center text-red-500">
-          <p>Error: {error}</p>
+function DashboardCard({ title, value, icon, trend }: {
+  title: string;
+  value: string;
+  icon: string;
+  trend: string;
+}) {
+  const isPositive = trend.startsWith('+');
+  
+  return (
+    <div className="bg-white dark:bg-gray-800 rounded-lg p-6">
+      <div className="flex justify-between items-start">
+        <div>
+          <p className="text-gray-500 dark:text-gray-400">{title}</p>
+          <h3 className="text-2xl font-bold mt-1">{value}</h3>
         </div>
-      )}
-
-      {videoUrl && (
-        <div className="mt-8">
-          <video 
-            controls 
-            className="max-h-[70vh] w-auto"
-          >
-            <source src={videoUrl} type="video/mp4" />
-            Your browser does not support the video tag.
-          </video>
-        </div>
-      )}
+        <span className="text-2xl">{icon}</span>
+      </div>
+      <div className={`mt-2 text-sm ${isPositive ? 'text-green-500' : 'text-red-500'}`}>
+        {trend} from last month
+      </div>
     </div>
   );
 }
