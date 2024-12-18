@@ -21,13 +21,12 @@ export interface Background {
 export const AVATARS: Avatar[] = [
   { id: 'Daisy-inskirt-20220818', name: 'Daisy', preview: '👩' },
   { id: '4906bbce5e1a49d9936a59403c2c8efe', name: 'Brody', preview: '👨‍💼', hasDefaultVoice: true, hasDefaultBackground: true },
-  { id: 'noah_costume1_20230809', name: 'Noah', preview: '👨' },
-  { id: 'sarah_costume1_20230809', name: 'Sarah', preview: '👩‍🦰' },
+  // Temporarily remove Noah and Sarah until we have their correct voice IDs
 ];
 
 export const VOICES: Voice[] = [
   { id: '2d5b0e6cf36f460aa7fc47e3eee4ba54', name: 'Daisy (English)', language: 'English' },
-  { id: '1bd001e5c9cf4ae4a5a7406eaa10f319', name: 'Noah (English)', language: 'English' },
+  // Removed Noah's voice since we're not sure of the correct ID
 ];
 
 export const BACKGROUNDS: Background[] = [
