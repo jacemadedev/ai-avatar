@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { AVATARS, VOICES, BACKGROUNDS } from '@/types';
+import { AVATARS, VOICES } from '@/types';
 
 interface VideoConfig {
   text: string;
@@ -12,9 +12,10 @@ interface VideoConfig {
     id: string;
     name: string;
   };
-  background: {
-    type: 'color' | 'image' | 'video';
-    value: string;
+  subtitles: {
+    enabled: boolean;
+    style?: 'bold' | 'normal';
+    position?: 'bottom' | 'top';
   };
 }
 
@@ -34,9 +35,10 @@ export default function CreateVideo() {
       id: VOICES[0].id,
       name: VOICES[0].name
     },
-    background: {
-      type: 'color',
-      value: BACKGROUNDS[1].value // Green screen default
+    subtitles: {
+      enabled: true,
+      style: 'bold',
+      position: 'bottom'
     }
   });
 
@@ -144,12 +146,7 @@ export default function CreateVideo() {
                   onClick={() => setConfig({
                     ...config,
                     avatar: { ...config.avatar, id: avatar.id },
-                    voice: avatar.hasDefaultVoice 
-                      ? { id: '', name: `${avatar.name} (Default)` }
-                      : { ...VOICES.find(v => v.name.includes(avatar.name)) || config.voice },
-                    ...(avatar.hasDefaultBackground ? {} : {
-                      background: config.background
-                    })
+                    voice: { ...VOICES.find(v => v.name.includes(avatar.name)) || config.voice }
                   })}
                   className={`p-4 rounded-lg border ${
                     config.avatar.id === avatar.id
@@ -190,37 +187,76 @@ export default function CreateVideo() {
             </select>
           </div>
 
-          {/* Background Selection - Only show if current avatar doesn't have default background */}
-          {!AVATARS.find(a => a.id === config.avatar.id)?.hasDefaultBackground && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Background
-              </label>
-              <div className="grid grid-cols-3 gap-4">
-                {BACKGROUNDS.map((bg) => (
-                  <button
-                    key={bg.value}
-                    onClick={() => setConfig({
-                      ...config,
-                      background: { type: 'color', value: bg.value }
-                    })}
-                    className={`p-4 rounded-lg border ${
-                      config.background.value === bg.value
-                        ? 'border-blue-500'
-                        : 'border-gray-200 dark:border-gray-700'
-                    }`}
-                    style={{ backgroundColor: bg.value }}
-                  >
-                    <span className="text-sm" style={{ 
-                      color: bg.value === '#FFFFFF' ? '#000000' : '#FFFFFF'
-                    }}>
-                      {bg.name}
-                    </span>
-                  </button>
-                ))}
+          {/* Subtitle Options */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Subtitles
+            </label>
+            <div className="space-y-4">
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="enable-subtitles"
+                  checked={config.subtitles.enabled}
+                  onChange={(e) => setConfig({
+                    ...config,
+                    subtitles: {
+                      ...config.subtitles,
+                      enabled: e.target.checked
+                    }
+                  })}
+                  className="h-4 w-4 text-blue-500 rounded border-gray-300 focus:ring-blue-500"
+                />
+                <label htmlFor="enable-subtitles" className="ml-2 text-sm text-gray-700 dark:text-gray-300">
+                  Enable Subtitles
+                </label>
               </div>
+
+              {config.subtitles.enabled && (
+                <>
+                  <div>
+                    <label className="block text-sm text-gray-700 dark:text-gray-300 mb-1">
+                      Style
+                    </label>
+                    <select
+                      value={config.subtitles.style}
+                      onChange={(e) => setConfig({
+                        ...config,
+                        subtitles: {
+                          ...config.subtitles,
+                          style: e.target.value as 'bold' | 'normal'
+                        }
+                      })}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700"
+                    >
+                      <option value="bold">Bold</option>
+                      <option value="normal">Normal</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm text-gray-700 dark:text-gray-300 mb-1">
+                      Position
+                    </label>
+                    <select
+                      value={config.subtitles.position}
+                      onChange={(e) => setConfig({
+                        ...config,
+                        subtitles: {
+                          ...config.subtitles,
+                          position: e.target.value as 'bottom' | 'top'
+                        }
+                      })}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700"
+                    >
+                      <option value="bottom">Bottom</option>
+                      <option value="top">Top</option>
+                    </select>
+                  </div>
+                </>
+              )}
             </div>
-          )}
+          </div>
 
           {/* Generate Button */}
           <button

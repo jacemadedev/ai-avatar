@@ -1,9 +1,8 @@
 import { NextResponse } from 'next/server';
-import { AVATARS } from '@/types';
 
 export async function POST(request: Request) {
   try {
-    const { text, avatar, voice, background } = await request.json();
+    const { text, avatar, voice, subtitles } = await request.json();
 
     const requestBody = {
       video_inputs: [
@@ -13,27 +12,21 @@ export async function POST(request: Request) {
             avatar_id: avatar.id,
             avatar_style: avatar.style
           },
-          voice: voice.id ? {
+          voice: {
             type: 'text',
             input_text: text,
             voice_id: voice.id
-          } : {
-            type: 'text',
-            input_text: text
-          },
-          ...(AVATARS.find((a) => a.id === avatar.id)?.hasDefaultBackground ? {} : {
-            background: {
-              type: background.type,
-              value: background.value
-            }
-          })
+          }
         }
       ],
       dimension: {
         width: 720,
         height: 1280
       },
-      aspect_ratio: '9:16'
+      aspect_ratio: '9:16',
+      enable_subtitle: subtitles.enabled,
+      subtitle_style: subtitles.style || 'bold',
+      subtitle_position: subtitles.position || 'bottom'
     };
 
     console.log('Making request to HeyGen API with:', requestBody);
