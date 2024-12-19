@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { Check, Loader2, Crown } from 'lucide-react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from 'next/navigation';
@@ -51,7 +51,7 @@ const PLANS = [
   },
 ];
 
-export default function Plans() {
+function PlansContent() {
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [currentPlan, setCurrentPlan] = useState<string>('Free');
   const [loading, setLoading] = useState(false);
@@ -233,5 +233,17 @@ export default function Plans() {
         ))}
       </div>
     </div>
+  );
+}
+
+export default function Plans() {
+  return (
+    <Suspense fallback={
+      <div className="flex justify-center items-center min-h-[60vh]">
+        <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+      </div>
+    }>
+      <PlansContent />
+    </Suspense>
   );
 } 

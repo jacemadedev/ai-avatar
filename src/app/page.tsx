@@ -1,10 +1,11 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { AuthModal } from '@/components/auth/AuthModal';
 import { VideoCard } from '@/components/videos/VideoCard';
 import { Loader2, PlaySquare } from 'lucide-react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 interface Video {
   id: string;
@@ -15,7 +16,7 @@ interface Video {
   user_id: string;
 }
 
-export default function Home() {
+function HomeContent() {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [videos, setVideos] = useState<Video[]>([]);
   const [loading, setLoading] = useState(true);
@@ -148,5 +149,13 @@ export default function Home() {
         onClose={() => setShowAuthModal(false)} 
       />
     </>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={<LoadingSpinner />}>
+      <HomeContent />
+    </Suspense>
   );
 }
