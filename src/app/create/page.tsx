@@ -1,16 +1,22 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AVATARS, VOICES, type VideoConfig } from '@/types';
 import { VideoCreationWizard } from '@/components/create/VideoCreationWizard';
 import { VideoPreview } from '@/components/create/VideoPreview';
 import { GenerationModal } from '@/components/create/GenerationModal';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { AuthModal } from '@/components/auth/AuthModal';
+import type { AuthChangeEvent, Session } from '@supabase/supabase-js';
 
 export default function CreateVideo() {
   const [videoUrl, setVideoUrl] = useState<string>('');
   const [status, setStatus] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>('');
-  
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const supabase = createClientComponentClient();
+
   const [config, setConfig] = useState<VideoConfig>({
     text: '',
     avatar: {
@@ -27,6 +33,28 @@ export default function CreateVideo() {
       position: 'bottom'
     }
   });
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        setShowAuthModal(true);
+      } else {
+        setIsAuthenticated(true);
+      }
+    };
+
+    checkAuth();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event: AuthChangeEvent, session: Session | null) => {
+      setIsAuthenticated(!!session);
+      if (session) {
+        setShowAuthModal(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [supabase.auth]);
 
   const generateVideo = async () => {
     if (!config.text.trim()) {
@@ -103,28 +131,37 @@ export default function CreateVideo() {
 
   return (
     <div className="space-y-8">
-      <VideoCreationWizard
-        config={config}
-        onConfigChange={setConfig}
-        onGenerate={generateVideo}
-        isGenerating={loading}
-        error={error}
+      <AuthModal 
+        isOpen={showAuthModal} 
+        onClose={() => setShowAuthModal(false)} 
       />
-
-      <GenerationModal 
-        isOpen={loading} 
-        status={status} 
-      />
-
-      {videoUrl && (
-        <div className="max-w-4xl mx-auto">
-          <VideoPreview
-            url={videoUrl}
-            status={status}
+      
+      {isAuthenticated ? (
+        <>
+          <VideoCreationWizard
+            config={config}
+            onConfigChange={setConfig}
+            onGenerate={generateVideo}
+            isGenerating={loading}
             error={error}
           />
-        </div>
-      )}
+
+          <GenerationModal 
+            isOpen={loading} 
+            status={status} 
+          />
+
+          {videoUrl && (
+            <div className="max-w-4xl mx-auto">
+              <VideoPreview
+                url={videoUrl}
+                status={status}
+                error={error}
+              />
+            </div>
+          )}
+        </>
+      ) : null}
     </div>
   );
 } 
