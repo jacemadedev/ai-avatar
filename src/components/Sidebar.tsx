@@ -3,7 +3,6 @@ import {
   LayoutDashboard,
   Video,
   History,
-  Files,
   Settings
 } from 'lucide-react';
 
@@ -12,7 +11,6 @@ const Sidebar = () => {
     { title: 'Dashboard', href: '/', icon: LayoutDashboard },
     { title: 'Create Video', href: '/create', icon: Video },
     { title: 'History', href: '/history', icon: History },
-    { title: 'Templates', href: '/templates', icon: Files },
     { title: 'Settings', href: '/settings', icon: Settings },
   ];
 
