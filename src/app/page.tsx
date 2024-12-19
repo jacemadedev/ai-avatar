@@ -87,7 +87,7 @@ function HomeContent() {
         <div className="bg-white dark:bg-gray-800 rounded-lg p-6">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-semibold">
-              {isAuthenticated ? 'Your Videos' : 'Featured Videos'}
+              Recently Created
             </h2>
             {!isAuthenticated && (
               <div className="text-sm text-gray-500">

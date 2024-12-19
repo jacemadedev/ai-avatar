@@ -17,7 +17,7 @@ interface Video {
 
 interface VideoCardProps {
   video: Video;
-  onDelete?: () => void;
+  onDelete: (id: string) => void;
 }
 
 export function VideoCard({ video, onDelete }: VideoCardProps) {
@@ -33,20 +33,19 @@ export function VideoCard({ video, onDelete }: VideoCardProps) {
 
     try {
       setIsDeleting(true);
-      const response = await fetch(`/api/videos?videoId=${video.id}`, {
-        method: 'DELETE',
-      });
+      const { error } = await supabase
+        .from('videos')
+        .delete()
+        .eq('id', video.id);
 
-      if (!response.ok) {
-        throw new Error('Failed to delete video');
-      }
+      if (error) throw error;
+      onDelete(video.id);
 
       setIsVisible(false);
       
       showToast('Video deleted successfully');
       
       setTimeout(() => {
-        onDelete?.();
         // router.refresh();
       }, 300);
 

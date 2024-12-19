@@ -27,6 +27,20 @@ export interface VideoConfig {
   };
 }
 
+export interface Video {
+  id: string;
+  title: string;
+  status: string;
+  video_url: string | null;
+  created_at: string;
+  user_id: string;
+}
+
+export interface VideoCardProps {
+  video: Video;
+  onDelete: (id: string) => void;
+}
+
 // Male Avatars
 export const MALE_AVATARS: Avatar[] = [
   { id: '4906bbce5e1a49d9936a59403c2c8efe', name: 'Male 1', preview: '👨‍💼' },
