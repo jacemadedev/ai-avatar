@@ -28,22 +28,21 @@ const Header = () => {
       router.push('/?authRequired=true');
       return;
     }
-    // TODO: Implement plans page navigation
     router.push('/plans');
   };
 
   return (
-    <header className="h-16 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-6">
+    <header className="h-16 bg-[#f5f5f7]/80 dark:bg-black/80 backdrop-blur-xl border-b border-[#e5e5e7] dark:border-[#2d2d2f] flex items-center justify-between px-8 sticky top-0 z-10">
       <div className="flex items-center space-x-4">
-        <h2 className="text-xl font-semibold">Create UGC Video</h2>
+        <h2 className="text-[17px] font-medium text-[#1d1d1f] dark:text-white">Create Video</h2>
       </div>
       
       <button
         onClick={handlePlansClick}
-        className={`px-4 py-2 rounded-lg transition-colors ${
+        className={`px-5 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
           isAuthenticated 
-            ? 'bg-blue-500 text-white hover:bg-blue-600' 
-            : 'bg-gray-100 text-gray-400 cursor-not-allowed dark:bg-gray-700'
+            ? 'bg-[#1d1d1f] text-white hover:bg-[#2d2d2f] dark:bg-white dark:text-black dark:hover:bg-[#f5f5f7]' 
+            : 'bg-[#f5f5f7] text-[#86868b] cursor-not-allowed dark:bg-[#1d1d1f]'
         }`}
         disabled={!isAuthenticated}
       >

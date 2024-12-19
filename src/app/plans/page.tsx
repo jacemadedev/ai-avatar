@@ -55,9 +55,22 @@ export default function Plans() {
         return;
       }
 
-      // TODO: Implement Stripe integration
-      console.log(`Subscribing to ${planName} plan`);
+      const response = await fetch('/api/create-checkout-session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          planName,
+        }),
+      });
 
+      if (!response.ok) {
+        throw new Error('Failed to create checkout session');
+      }
+
+      const { url } = await response.json();
+      window.location.href = url;
     } catch (err) {
       console.error('Error subscribing to plan:', err);
       setError('Failed to process subscription. Please try again.');

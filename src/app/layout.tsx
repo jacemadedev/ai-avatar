@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "UGC Creator",
-  description: "Create UGC video ads for brands",
+  title: "Face Card",
+  description: "Create AI-powered video content with virtual avatars",
 };
 
 export default function RootLayout({
@@ -27,11 +27,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50 dark:bg-gray-900`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#f5f5f7] dark:bg-[#000000]`}
       >
         <div className="flex min-h-screen">
           <Sidebar />
-          <div className="flex-1 ml-64">
+          <div className="flex-1 ml-[280px]">
             <Header />
             <main className="p-6">
               {children}
