@@ -14,74 +14,101 @@ export function VideoActions({ videoId }: VideoActionsProps) {
 
   useEffect(() => {
     async function checkInteractions() {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) return;
 
-      const userId = session.user.id;
+        const userId = session.user.id;
 
-      // Check if video is liked
-      const { data: like } = await supabase
-        .from('likes')
-        .select('id')
-        .eq('video_id', videoId)
-        .eq('user_id', userId)
-        .single();
+        // Check if video is liked - Modified query
+        const { data: likes, error: likeError } = await supabase
+          .from('likes')
+          .select('*')
+          .eq('video_id', videoId)
+          .eq('user_id', userId);
 
-      // Check if video is saved
-      const { data: save } = await supabase
-        .from('saves')
-        .select('id')
-        .eq('video_id', videoId)
-        .eq('user_id', userId)
-        .single();
+        if (likeError) {
+          console.error('Error checking like status:', likeError);
+        }
 
-      setIsLiked(!!like);
-      setIsSaved(!!save);
+        // Check if video is saved - Modified query
+        const { data: saves, error: saveError } = await supabase
+          .from('saves')
+          .select('*')
+          .eq('video_id', videoId)
+          .eq('user_id', userId);
+
+        if (saveError) {
+          console.error('Error checking save status:', saveError);
+        }
+
+        // Handle null cases explicitly
+        setIsLiked(!!likes?.length);
+        setIsSaved(!!saves?.length);
+      } catch (err) {
+        console.error('Error checking interactions:', err);
+      }
     }
 
     checkInteractions();
   }, [videoId, supabase]);
 
   const toggleLike = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) return;
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
 
-    const userId = session.user.id;
+      const userId = session.user.id;
 
-    if (isLiked) {
-      await supabase
-        .from('likes')
-        .delete()
-        .eq('video_id', videoId)
-        .eq('user_id', userId);
-    } else {
-      await supabase
-        .from('likes')
-        .insert({ video_id: videoId, user_id: userId });
+      if (isLiked) {
+        const { error } = await supabase
+          .from('likes')
+          .delete()
+          .eq('video_id', videoId)
+          .eq('user_id', userId);
+
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('likes')
+          .insert({ video_id: videoId, user_id: userId });
+
+        if (error) throw error;
+      }
+
+      setIsLiked(!isLiked);
+    } catch (err) {
+      console.error('Error toggling like:', err);
     }
-
-    setIsLiked(!isLiked);
   };
 
   const toggleSave = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) return;
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
 
-    const userId = session.user.id;
+      const userId = session.user.id;
 
-    if (isSaved) {
-      await supabase
-        .from('saves')
-        .delete()
-        .eq('video_id', videoId)
-        .eq('user_id', userId);
-    } else {
-      await supabase
-        .from('saves')
-        .insert({ video_id: videoId, user_id: userId });
+      if (isSaved) {
+        const { error } = await supabase
+          .from('saves')
+          .delete()
+          .eq('video_id', videoId)
+          .eq('user_id', userId);
+
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('saves')
+          .insert({ video_id: videoId, user_id: userId });
+
+        if (error) throw error;
+      }
+
+      setIsSaved(!isSaved);
+    } catch (err) {
+      console.error('Error toggling save:', err);
     }
-
-    setIsSaved(!isSaved);
   };
 
   return (
