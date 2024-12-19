@@ -43,6 +43,7 @@ export async function POST(req: Request) {
     let customerId = customerData?.stripe_customer_id;
 
     if (!customerId) {
+      // Create a new customer in Stripe
       const customer = await stripe.customers.create({
         email: session.user.email,
         metadata: {
@@ -51,9 +52,15 @@ export async function POST(req: Request) {
       });
       customerId = customer.id;
 
+      // Create customer record in Supabase
       await supabase
         .from('customers')
-        .insert([{ id: session.user.id, stripe_customer_id: customerId }]);
+        .insert([
+          { 
+            id: session.user.id, 
+            stripe_customer_id: customerId,
+          }
+        ]);
     }
 
     const session_url = new URL(req.url);
@@ -72,6 +79,9 @@ export async function POST(req: Request) {
         metadata: {
           supabase_user_id: session.user.id,
         },
+      },
+      metadata: {
+        supabase_user_id: session.user.id,
       },
     });
 

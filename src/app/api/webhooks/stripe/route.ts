@@ -50,6 +50,29 @@ export async function POST(req: Request) {
         const customerId = subscription.customer as string;
         const priceId = subscription.items.data[0].price.id;
 
+        // Get the Supabase user ID from metadata
+        const supabaseUserId = subscription.metadata.supabase_user_id;
+
+        if (!supabaseUserId) {
+          console.error('No Supabase user ID in metadata');
+          return NextResponse.json({ error: 'Invalid metadata' }, { status: 400 });
+        }
+
+        // First, ensure customer exists
+        const { error: customerUpsertError } = await supabase
+          .from('customers')
+          .upsert({
+            id: supabaseUserId,
+            stripe_customer_id: customerId,
+          }, {
+            onConflict: 'id'
+          });
+
+        if (customerUpsertError) {
+          console.error('Error upserting customer:', customerUpsertError);
+          return NextResponse.json({ error: 'Database error' }, { status: 500 });
+        }
+
         const planMap: { [key: string]: string } = {
           [process.env.STRIPE_FOUNDER_PRICE_ID!]: 'Founder',
           [process.env.STRIPE_PRO_PRICE_ID!]: 'Pro'
@@ -57,22 +80,12 @@ export async function POST(req: Request) {
 
         const planName = planMap[priceId] || 'Free';
 
-        const { data: customerData, error: customerError } = await supabase
-          .from('customers')
-          .select('id')
-          .eq('stripe_customer_id', customerId)
-          .single();
-
-        if (customerError) {
-          console.error('Error fetching customer:', customerError);
-          return NextResponse.json({ error: 'Customer not found' }, { status: 404 });
-        }
-
+        // Update subscription
         const { error: subscriptionError } = await supabase
           .from('subscriptions')
           .upsert({
             id: subscription.id,
-            user_id: customerData.id,
+            user_id: supabaseUserId,
             status: subscription.status,
             plan_name: planName,
             current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
