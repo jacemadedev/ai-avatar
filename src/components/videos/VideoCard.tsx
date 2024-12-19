@@ -47,6 +47,7 @@ export function VideoCard({ video, onDelete }: VideoCardProps) {
       
       setTimeout(() => {
         onDelete?.();
+        // router.refresh();
       }, 300);
 
     } catch (error) {

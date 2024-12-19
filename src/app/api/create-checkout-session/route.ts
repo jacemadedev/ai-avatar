@@ -66,8 +66,8 @@ export async function POST(req: Request) {
         },
       ],
       mode: 'subscription',
-      success_url: `${session_url.origin}/dashboard?success=true`,
-      cancel_url: `${session_url.origin}/plans?canceled=true`,
+      success_url: `${session_url.origin}/success`,
+      cancel_url: `${session_url.origin}/plans`,
       subscription_data: {
         metadata: {
           supabase_user_id: session.user.id,
