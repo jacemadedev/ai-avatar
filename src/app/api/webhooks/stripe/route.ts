@@ -128,15 +128,80 @@ export async function POST(req: Request) {
 
         break;
       }
+
+      case 'checkout.session.completed': {
+        const session = event.data.object as Stripe.Checkout.Session;
+        const subscriptionId = session.subscription as string;
+        const customerId = session.customer as string;
+
+        // Get subscription details
+        const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+        const priceId = subscription.items.data[0].price.id;
+        const supabaseUserId = session.metadata?.supabase_user_id;
+
+        if (!supabaseUserId) {
+          console.error('No Supabase user ID in metadata');
+          return NextResponse.json({ error: 'Invalid metadata' }, { status: 400 });
+        }
+
+        const planMap: { [key: string]: string } = {
+          [process.env.STRIPE_FOUNDER_PRICE_ID!]: 'Founder',
+          [process.env.STRIPE_PRO_PRICE_ID!]: 'Pro'
+        };
+
+        const planName = planMap[priceId] || 'Free';
+
+        // Update subscription status
+        const { error: subscriptionError } = await supabase
+          .from('subscriptions')
+          .upsert({
+            id: subscriptionId,
+            user_id: supabaseUserId,
+            status: subscription.status,
+            plan_name: planName,
+            current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+            cancel_at_period_end: subscription.cancel_at_period_end,
+            stripe_customer_id: customerId,
+            created_at: new Date(subscription.created * 1000).toISOString(),
+            updated_at: new Date().toISOString()
+          });
+
+        if (subscriptionError) {
+          console.error('Error updating subscription after payment:', subscriptionError);
+          return NextResponse.json({ error: 'Database error' }, { status: 500 });
+        }
+
+        break;
+      }
+
+      case 'invoice.paid': {
+        const invoice = event.data.object as Stripe.Invoice;
+        const subscriptionId = invoice.subscription as string;
+        
+        if (subscriptionId) {
+          const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+          
+          const { error: updateError } = await supabase
+            .from('subscriptions')
+            .update({
+              status: subscription.status,
+              current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+            })
+            .eq('id', subscriptionId);
+
+          if (updateError) {
+            console.error('Error updating subscription after invoice paid:', updateError);
+            return NextResponse.json({ error: 'Database error' }, { status: 500 });
+          }
+        }
+        break;
+      }
     }
 
     return NextResponse.json({ received: true });
   } catch (error) {
     console.error('Error processing webhook:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 

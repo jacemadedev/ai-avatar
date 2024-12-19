@@ -8,29 +8,81 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
 export default function SuccessPage() {
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const supabase = createClientComponentClient();
 
   useEffect(() => {
-    const redirectTimer = setTimeout(() => {
-      router.push('/create');
-    }, 5000);
+    const checkSubscription = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          router.push('/');
+          return;
+        }
 
-    return () => clearTimeout(redirectTimer);
-  }, [router]);
+        // Poll for subscription status
+        let attempts = 0;
+        const maxAttempts = 10;
+        const pollInterval = 2000; // 2 seconds
 
-  useEffect(() => {
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        router.push('/');
-      } else {
+        const checkStatus = async () => {
+          const { data: subscription, error } = await supabase
+            .from('subscriptions')
+            .select('status')
+            .eq('user_id', session.user.id)
+            .single();
+
+          if (error) {
+            throw error;
+          }
+
+          if (subscription?.status === 'active') {
+            setLoading(false);
+            setTimeout(() => router.push('/create'), 2000);
+            return true;
+          }
+
+          if (attempts >= maxAttempts) {
+            throw new Error('Subscription activation timeout');
+          }
+
+          attempts++;
+          return false;
+        };
+
+        const poll = async () => {
+          const isActive = await checkStatus();
+          if (!isActive) {
+            setTimeout(poll, pollInterval);
+          }
+        };
+
+        await poll();
+
+      } catch (error) {
+        console.error('Error checking subscription:', error);
+        setError('Failed to verify subscription. Please contact support.');
         setLoading(false);
       }
     };
 
-    checkSession();
-  }, [supabase.auth, router]);
+    checkSubscription();
+  }, [supabase, router]);
+
+  if (error) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center">
+        <div className="text-red-500 mb-4">{error}</div>
+        <button
+          onClick={() => router.push('/plans')}
+          className="px-4 py-2 bg-blue-500 text-white rounded-lg"
+        >
+          Return to Plans
+        </button>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
