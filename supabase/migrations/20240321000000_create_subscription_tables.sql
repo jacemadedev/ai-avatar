@@ -7,6 +7,7 @@ create table if not exists public.customers (
 );
 
 -- Create subscriptions table if not exists
+drop table if exists public.subscriptions;
 create table if not exists public.subscriptions (
   id text primary key,
   user_id uuid references auth.users on delete cascade not null,
@@ -16,8 +17,13 @@ create table if not exists public.subscriptions (
   cancel_at_period_end boolean not null default false,
   stripe_customer_id text not null,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
-  updated_at timestamp with time zone default timezone('utc'::text, now()) not null
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  constraint fk_user foreign key (user_id) references auth.users(id) on delete cascade
 );
+
+-- Ensure indexes for performance
+create index if not exists idx_subscriptions_user_id on public.subscriptions(user_id);
+create index if not exists idx_subscriptions_stripe_customer_id on public.subscriptions(stripe_customer_id);
 
 -- Add RLS policies
 alter table public.customers enable row level security;

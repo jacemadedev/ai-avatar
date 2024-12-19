@@ -64,8 +64,6 @@ export async function POST(req: Request) {
           .upsert({
             id: supabaseUserId,
             stripe_customer_id: customerId,
-          }, {
-            onConflict: 'id'
           });
 
         if (customerUpsertError) {
@@ -80,7 +78,7 @@ export async function POST(req: Request) {
 
         const planName = planMap[priceId] || 'Free';
 
-        // Update subscription
+        // Update subscription with exact schema match
         const { error: subscriptionError } = await supabase
           .from('subscriptions')
           .upsert({
@@ -91,12 +89,21 @@ export async function POST(req: Request) {
             current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
             cancel_at_period_end: subscription.cancel_at_period_end,
             stripe_customer_id: customerId,
-          }, {
-            onConflict: 'id'
+            created_at: new Date(subscription.created * 1000).toISOString(),
+            updated_at: new Date().toISOString()
           });
 
         if (subscriptionError) {
           console.error('Error updating subscription:', subscriptionError);
+          console.error('Subscription data:', {
+            id: subscription.id,
+            user_id: supabaseUserId,
+            status: subscription.status,
+            plan_name: planName,
+            current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+            cancel_at_period_end: subscription.cancel_at_period_end,
+            stripe_customer_id: customerId
+          });
           return NextResponse.json({ error: 'Database error' }, { status: 500 });
         }
 
