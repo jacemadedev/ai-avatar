@@ -1,23 +1,11 @@
 'use client';
 import { useState } from 'react';
-import { AVATARS, VOICES } from '@/types';
-
-interface VideoConfig {
-  text: string;
-  avatar: {
-    id: string;
-    style: 'normal' | 'happy' | 'sad' | 'angry';
-  };
-  voice: {
-    id: string;
-    name: string;
-  };
-  subtitles: {
-    enabled: boolean;
-    style?: 'bold' | 'normal';
-    position?: 'bottom' | 'top';
-  };
-}
+import { AVATARS, VOICES, type VideoConfig } from '@/types';
+import { ScriptInput } from '@/components/create/ScriptInput';
+import { AvatarSelector } from '@/components/create/AvatarSelector';
+import { VoiceSelector } from '@/components/create/VoiceSelector';
+import { SubtitleConfig } from '@/components/create/SubtitleConfig';
+import { VideoPreview } from '@/components/create/VideoPreview';
 
 export default function CreateVideo() {
   const [videoUrl, setVideoUrl] = useState<string>('');
@@ -121,144 +109,33 @@ export default function CreateVideo() {
         <h2 className="text-xl font-semibold mb-4">Create New Video</h2>
         
         <div className="space-y-6">
-          {/* Script Input */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Script
-            </label>
-            <textarea
-              value={config.text}
-              onChange={(e) => setConfig({ ...config, text: e.target.value })}
-              className="w-full h-32 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700"
-              placeholder="Enter your video script here..."
-            />
-          </div>
+          <ScriptInput 
+            value={config.text}
+            onChange={(text) => setConfig({ ...config, text })}
+          />
 
-          {/* Avatar Selection */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Avatar
-            </label>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {AVATARS.map((avatar) => (
-                <button
-                  key={avatar.id}
-                  onClick={() => setConfig({
-                    ...config,
-                    avatar: { ...config.avatar, id: avatar.id },
-                    voice: { ...VOICES.find(v => v.name.includes(avatar.name)) || config.voice }
-                  })}
-                  className={`p-4 rounded-lg border ${
-                    config.avatar.id === avatar.id
-                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                      : 'border-gray-200 dark:border-gray-700'
-                  }`}
-                >
-                  <span className="text-3xl block mb-2">{avatar.preview}</span>
-                  <span className="text-sm">{avatar.name}</span>
-                </button>
-              ))}
-            </div>
-          </div>
+          <AvatarSelector
+            selectedAvatarId={config.avatar.id}
+            onSelect={(avatar) => setConfig({
+              ...config,
+              avatar: { ...config.avatar, id: avatar.id },
+              voice: VOICES.find(v => v.name.includes(avatar.name)) || config.voice
+            })}
+          />
 
-          {/* Voice Selection */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Voice
-            </label>
-            <select
-              value={config.voice.id}
-              onChange={(e) => {
-                const voice = VOICES.find(v => v.id === e.target.value);
-                if (voice) {
-                  setConfig({
-                    ...config,
-                    voice: { id: voice.id, name: voice.name }
-                  });
-                }
-              }}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700"
-            >
-              {VOICES.map((voice) => (
-                <option key={voice.id} value={voice.id}>
-                  {voice.name}
-                </option>
-              ))}
-            </select>
-          </div>
+          <VoiceSelector
+            selectedVoiceId={config.voice.id}
+            onSelect={(voice) => setConfig({
+              ...config,
+              voice: { id: voice.id, name: voice.name }
+            })}
+          />
 
-          {/* Subtitle Options */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Subtitles
-            </label>
-            <div className="space-y-4">
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  id="enable-subtitles"
-                  checked={config.subtitles.enabled}
-                  onChange={(e) => setConfig({
-                    ...config,
-                    subtitles: {
-                      ...config.subtitles,
-                      enabled: e.target.checked
-                    }
-                  })}
-                  className="h-4 w-4 text-blue-500 rounded border-gray-300 focus:ring-blue-500"
-                />
-                <label htmlFor="enable-subtitles" className="ml-2 text-sm text-gray-700 dark:text-gray-300">
-                  Enable Subtitles
-                </label>
-              </div>
+          <SubtitleConfig
+            config={config.subtitles}
+            onChange={(subtitles) => setConfig({ ...config, subtitles })}
+          />
 
-              {config.subtitles.enabled && (
-                <>
-                  <div>
-                    <label className="block text-sm text-gray-700 dark:text-gray-300 mb-1">
-                      Style
-                    </label>
-                    <select
-                      value={config.subtitles.style}
-                      onChange={(e) => setConfig({
-                        ...config,
-                        subtitles: {
-                          ...config.subtitles,
-                          style: e.target.value as 'bold' | 'normal'
-                        }
-                      })}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700"
-                    >
-                      <option value="bold">Bold</option>
-                      <option value="normal">Normal</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm text-gray-700 dark:text-gray-300 mb-1">
-                      Position
-                    </label>
-                    <select
-                      value={config.subtitles.position}
-                      onChange={(e) => setConfig({
-                        ...config,
-                        subtitles: {
-                          ...config.subtitles,
-                          position: e.target.value as 'bottom' | 'top'
-                        }
-                      })}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700"
-                    >
-                      <option value="bottom">Bottom</option>
-                      <option value="top">Top</option>
-                    </select>
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-
-          {/* Generate Button */}
           <button
             onClick={generateVideo}
             disabled={loading || !config.text.trim()}
@@ -267,31 +144,11 @@ export default function CreateVideo() {
             {loading ? 'Generating...' : 'Generate Video'}
           </button>
 
-          {/* Status and Error Messages */}
-          {status && (
-            <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-              <p>Status: {status}</p>
-            </div>
-          )}
-
-          {error && (
-            <div className="p-4 bg-red-50 dark:bg-red-900/20 text-red-500 rounded-lg">
-              <p>Error: {error}</p>
-            </div>
-          )}
-
-          {/* Video Preview */}
-          {videoUrl && (
-            <div className="mt-8">
-              <video 
-                controls 
-                className="max-h-[70vh] w-auto mx-auto rounded-lg"
-              >
-                <source src={videoUrl} type="video/mp4" />
-                Your browser does not support the video tag.
-              </video>
-            </div>
-          )}
+          <VideoPreview
+            url={videoUrl}
+            status={status}
+            error={error}
+          />
         </div>
       </div>
     </div>
