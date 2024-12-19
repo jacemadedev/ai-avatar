@@ -82,4 +82,76 @@ export async function DELETE(request: Request) {
     console.error('Error in delete video route:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
+}
+
+// Add type for plan names
+type PlanName = 'Free' | 'Founder' | 'Pro';
+
+export async function POST(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const videoId = searchParams.get('videoId');
+
+    if (!videoId) {
+      return NextResponse.json({ error: 'Video ID is required' }, { status: 400 });
+    }
+
+    const cookieStore = cookies();
+    const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
+    
+    const { data: { session } } = await supabase.auth.getSession();
+
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { data: subscription } = await supabase
+      .from('subscriptions')
+      .select('plan_name, status')
+      .eq('user_id', session.user.id)
+      .single();
+
+    const planLimits: Record<PlanName, number> = {
+      'Free': 5,
+      'Founder': 15,
+      'Pro': 40
+    };
+
+    const { data: user, error: userError } = await supabase
+      .from('users')
+      .select('monthly_video_count')
+      .eq('id', session.user.id)
+      .single();
+
+    if (userError || !user) {
+      return NextResponse.json({ error: 'Failed to fetch user data' }, { status: 500 });
+    }
+
+    const currentPlan = (subscription?.status === 'active' ? subscription.plan_name : 'Free') as PlanName;
+    const videoLimit = planLimits[currentPlan];
+
+    if (user.monthly_video_count >= videoLimit) {
+      return NextResponse.json(
+        { error: `You have reached your monthly limit of ${videoLimit} videos. Please upgrade your plan to create more videos.` },
+        { status: 403 }
+      );
+    }
+
+    // Increment the video count
+    const { error: updateError } = await supabase
+      .from('users')
+      .update({ monthly_video_count: user.monthly_video_count + 1 })
+      .eq('id', session.user.id);
+
+    if (updateError) {
+      return NextResponse.json({ error: 'Failed to update video count' }, { status: 500 });
+    }
+
+    // Continue with video creation...
+    return NextResponse.json({ success: true });
+
+  } catch (error) {
+    console.error('Error in create video route:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
 } 
