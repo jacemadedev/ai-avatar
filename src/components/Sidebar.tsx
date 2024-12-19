@@ -2,7 +2,7 @@ import Link from 'next/link';
 import {
   LayoutDashboard,
   Video,
-  FileVideo,
+  History,
   Files,
   Settings
 } from 'lucide-react';
@@ -11,7 +11,7 @@ const Sidebar = () => {
   const menuItems = [
     { title: 'Dashboard', href: '/', icon: LayoutDashboard },
     { title: 'Create Video', href: '/create', icon: Video },
-    { title: 'My Videos', href: '/videos', icon: FileVideo },
+    { title: 'History', href: '/history', icon: History },
     { title: 'Templates', href: '/templates', icon: Files },
     { title: 'Settings', href: '/settings', icon: Settings },
   ];

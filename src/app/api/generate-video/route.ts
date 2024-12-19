@@ -1,7 +1,16 @@
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
   try {
+    const supabase = createRouteHandlerClient({ cookies });
+    const { data: { session } } = await supabase.auth.getSession();
+
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { text, avatar, voice, subtitles } = await request.json();
 
     const requestBody = {
@@ -51,21 +60,30 @@ export async function POST(request: Request) {
     }
 
     const data = await response.json();
-    console.log('Generate Video API Response:', data);
     
-    if (!data.data?.video_id) {
-      console.error('API Response Error:', data);
-      throw new Error(data.error || 'Failed to get video_id');
+    // Save video record to Supabase
+    const { error: insertError } = await supabase
+      .from('videos')
+      .insert({
+        id: data.data.video_id, // Use HeyGen's video ID
+        user_id: session.user.id,
+        title: text.slice(0, 50) + (text.length > 50 ? '...' : ''), // First 50 chars as title
+        status: 'processing'
+      });
+
+    if (insertError) {
+      console.error('Error saving video record:', insertError);
+      throw insertError;
     }
 
-    const responseData = { video_id: data.data.video_id };
-    console.log('Sending response:', responseData);
-    return NextResponse.json(responseData);
+    return NextResponse.json({
+      video_id: data.data.video_id
+    });
   } catch (error) {
     console.error('Error in generate-video route:', error);
-    if (error instanceof Error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
-    return NextResponse.json({ error: 'Failed to generate video' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Failed to generate video' },
+      { status: 500 }
+    );
   }
 } 
