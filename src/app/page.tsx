@@ -76,6 +76,10 @@ export default function Home() {
     return () => subscription.unsubscribe();
   }, [supabase]);
 
+  const handleVideoDelete = (deletedVideoId: string) => {
+    setVideos(videos.filter(video => video.id !== deletedVideoId));
+  };
+
   return (
     <>
       <div className="space-y-6">
@@ -117,7 +121,11 @@ export default function Home() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {videos.map((video) => (
-                <VideoCard key={video.id} video={video} />
+                <VideoCard 
+                  key={video.id} 
+                  video={video} 
+                  onDelete={() => handleVideoDelete(video.id)}
+                />
               ))}
             </div>
           )}
