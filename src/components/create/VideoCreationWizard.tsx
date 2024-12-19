@@ -6,7 +6,6 @@ import { VideoConfig, Avatar, Voice, AVATARS, VOICES } from '@/types';
 import { ScriptInput } from './ScriptInput';
 import { AvatarSelector } from './AvatarSelector';
 import { VoiceSelector } from './VoiceSelector';
-import { SubtitleConfig } from './SubtitleConfig';
 
 interface WizardProps {
   config: VideoConfig;
@@ -122,12 +121,6 @@ export function VideoCreationWizard({
                 })}
               />
             )}
-            {currentStep === 'subtitles' && (
-              <SubtitleConfig
-                config={config.subtitles}
-                onChange={(subtitles: VideoConfig['subtitles']) => onConfigChange({ ...config, subtitles })}
-              />
-            )}
             {currentStep === 'preview' && (
               <div className="space-y-6">
                 <div className="bg-gray-50 dark:bg-gray-700 p-6 rounded-lg">
@@ -146,10 +139,6 @@ export function VideoCreationWizard({
                     <div>
                       <dt className="text-sm text-gray-500">Voice</dt>
                       <dd className="mt-1">{config.voice.name}</dd>
-                    </div>
-                    <div>
-                      <dt className="text-sm text-gray-500">Subtitles</dt>
-                      <dd className="mt-1">{config.subtitles.enabled ? 'Enabled' : 'Disabled'}</dd>
                     </div>
                   </dl>
                 </div>

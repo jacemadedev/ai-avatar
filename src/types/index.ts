@@ -22,8 +22,8 @@ export interface VideoConfig {
   };
   subtitles: {
     enabled: boolean;
-    style?: 'bold' | 'normal';
-    position?: 'bottom' | 'top';
+    style: 'bold' | 'normal';
+    position: 'bottom' | 'top';
   };
 }
 

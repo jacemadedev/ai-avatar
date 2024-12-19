@@ -1,4 +1,4 @@
-export type CreationStep = 'script' | 'avatar' | 'voice' | 'subtitles' | 'preview';
+export type CreationStep = 'script' | 'avatar' | 'voice' | 'preview';
 
 export interface StepConfig {
   title: string;
@@ -17,10 +17,6 @@ export const CREATION_STEPS: Record<CreationStep, StepConfig> = {
   voice: {
     title: "Select the Voice",
     description: "Pick a voice that best represents your message."
-  },
-  subtitles: {
-    title: "Configure Subtitles",
-    description: "Make your video accessible with customized subtitles."
   },
   preview: {
     title: "Review & Generate",

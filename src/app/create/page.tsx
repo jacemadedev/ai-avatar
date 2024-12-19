@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { AVATARS, VOICES, type VideoConfig } from '@/types';
 import { VideoCreationWizard } from '@/components/create/VideoCreationWizard';
 import { VideoPreview } from '@/components/create/VideoPreview';
+import { GenerationModal } from '@/components/create/GenerationModal';
 
 export default function CreateVideo() {
   const [videoUrl, setVideoUrl] = useState<string>('');
@@ -110,7 +111,12 @@ export default function CreateVideo() {
         error={error}
       />
 
-      {(videoUrl || status || error) && (
+      <GenerationModal 
+        isOpen={loading} 
+        status={status} 
+      />
+
+      {videoUrl && (
         <div className="max-w-4xl mx-auto">
           <VideoPreview
             url={videoUrl}
