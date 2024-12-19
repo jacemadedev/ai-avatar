@@ -1,10 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { AVATARS, VOICES, type VideoConfig } from '@/types';
-import { ScriptInput } from '@/components/create/ScriptInput';
-import { AvatarSelector } from '@/components/create/AvatarSelector';
-import { VoiceSelector } from '@/components/create/VoiceSelector';
-import { SubtitleConfig } from '@/components/create/SubtitleConfig';
+import { VideoCreationWizard } from '@/components/create/VideoCreationWizard';
 import { VideoPreview } from '@/components/create/VideoPreview';
 
 export default function CreateVideo() {
@@ -104,53 +101,24 @@ export default function CreateVideo() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <div className="bg-white dark:bg-gray-800 rounded-lg p-6">
-        <h2 className="text-xl font-semibold mb-4">Create New Video</h2>
-        
-        <div className="space-y-6">
-          <ScriptInput 
-            value={config.text}
-            onChange={(text) => setConfig({ ...config, text })}
-          />
+    <div className="space-y-8">
+      <VideoCreationWizard
+        config={config}
+        onConfigChange={setConfig}
+        onGenerate={generateVideo}
+        isGenerating={loading}
+        error={error}
+      />
 
-          <AvatarSelector
-            selectedAvatarId={config.avatar.id}
-            onSelect={(avatar) => setConfig({
-              ...config,
-              avatar: { ...config.avatar, id: avatar.id },
-              voice: VOICES.find(v => v.name.includes(avatar.name)) || config.voice
-            })}
-          />
-
-          <VoiceSelector
-            selectedVoiceId={config.voice.id}
-            onSelect={(voice) => setConfig({
-              ...config,
-              voice: { id: voice.id, name: voice.name }
-            })}
-          />
-
-          <SubtitleConfig
-            config={config.subtitles}
-            onChange={(subtitles) => setConfig({ ...config, subtitles })}
-          />
-
-          <button
-            onClick={generateVideo}
-            disabled={loading || !config.text.trim()}
-            className="w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:bg-gray-400 transition-colors"
-          >
-            {loading ? 'Generating...' : 'Generate Video'}
-          </button>
-
+      {(videoUrl || status || error) && (
+        <div className="max-w-4xl mx-auto">
           <VideoPreview
             url={videoUrl}
             status={status}
             error={error}
           />
         </div>
-      </div>
+      )}
     </div>
   );
 } 
