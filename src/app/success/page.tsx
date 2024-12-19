@@ -2,13 +2,15 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
-import { Check, Loader2 } from 'lucide-react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { Loader2, Check } from 'lucide-react';
+import { motion } from 'framer-motion';
+import type { Subscription } from '@/types/subscription';
 
 export default function SuccessPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [subscription, setSubscription] = useState<Subscription | null>(null);
   const router = useRouter();
   const supabase = createClientComponentClient();
 
@@ -27,19 +29,19 @@ export default function SuccessPage() {
         const pollInterval = 2000; // 2 seconds
 
         const checkStatus = async () => {
-          const { data: subscription, error } = await supabase
+          const { data, error } = await supabase
             .from('subscriptions')
-            .select('status')
+            .select('*')
             .eq('user_id', session.user.id)
+            .order('created_at', { ascending: false })
+            .limit(1)
             .single();
 
-          if (error) {
-            throw error;
-          }
+          if (error) throw error;
 
-          if (subscription?.status === 'active') {
+          if (data && ['active', 'trialing'].includes(data.status)) {
+            setSubscription(data);
             setLoading(false);
-            setTimeout(() => router.push('/create'), 2000);
             return true;
           }
 
@@ -51,14 +53,25 @@ export default function SuccessPage() {
           return false;
         };
 
-        const poll = async () => {
-          const isActive = await checkStatus();
-          if (!isActive) {
-            setTimeout(poll, pollInterval);
-          }
-        };
+        // Initial check
+        const isActive = await checkStatus();
+        if (!isActive) {
+          // Start polling
+          const pollId = setInterval(async () => {
+            try {
+              const isNowActive = await checkStatus();
+              if (isNowActive || attempts >= maxAttempts) {
+                clearInterval(pollId);
+              }
+            } catch (error) {
+              clearInterval(pollId);
+              throw error;
+            }
+          }, pollInterval);
 
-        await poll();
+          // Cleanup
+          return () => clearInterval(pollId);
+        }
 
       } catch (error) {
         console.error('Error checking subscription:', error);
@@ -112,7 +125,7 @@ export default function SuccessPage() {
           Thank You for Your Subscription!
         </h1>
         <p className="text-gray-600 dark:text-gray-300 mb-8 max-w-md mx-auto">
-          Your account has been successfully upgraded. You now have access to all premium features.
+          Your {subscription?.plan_name} plan is now active. You have access to all {subscription?.plan_name.toLowerCase()} features.
         </p>
 
         <div className="space-y-4">
@@ -122,7 +135,10 @@ export default function SuccessPage() {
             transition={{ delay: 0.4 }}
             className="text-sm text-gray-500 dark:text-gray-400"
           >
-            Redirecting to create page in a few seconds...
+            Your subscription will renew on{' '}
+            {subscription?.current_period_end
+              ? new Date(subscription.current_period_end).toLocaleDateString()
+              : ''}
           </motion.div>
 
           <motion.button

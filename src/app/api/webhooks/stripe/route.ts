@@ -78,20 +78,24 @@ export async function POST(req: Request) {
 
         const planName = planMap[priceId] || 'Free';
 
-        // Update subscription with exact schema match
+        // Add these fields to the upsert
+        const subscriptionData = {
+          id: subscription.id,
+          user_id: supabaseUserId,
+          status: subscription.status,
+          plan_name: planName,
+          current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+          cancel_at_period_end: subscription.cancel_at_period_end,
+          cancel_at: subscription.cancel_at ? new Date(subscription.cancel_at * 1000).toISOString() : null,
+          canceled_at: subscription.canceled_at ? new Date(subscription.canceled_at * 1000).toISOString() : null,
+          stripe_customer_id: customerId,
+          created_at: new Date(subscription.created * 1000).toISOString(),
+          updated_at: new Date().toISOString()
+        };
+
         const { error: subscriptionError } = await supabase
           .from('subscriptions')
-          .upsert({
-            id: subscription.id,
-            user_id: supabaseUserId,
-            status: subscription.status,
-            plan_name: planName,
-            current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
-            cancel_at_period_end: subscription.cancel_at_period_end,
-            stripe_customer_id: customerId,
-            created_at: new Date(subscription.created * 1000).toISOString(),
-            updated_at: new Date().toISOString()
-          });
+          .upsert(subscriptionData);
 
         if (subscriptionError) {
           console.error('Error updating subscription:', subscriptionError);

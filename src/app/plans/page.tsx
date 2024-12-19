@@ -66,19 +66,22 @@ function PlansContent() {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (session) {
-          const { data: subscription } = await supabase
+          const { data: subscription, error } = await supabase
             .from('subscriptions')
-            .select('plan_name, status')
+            .select('*')
             .eq('user_id', session.user.id)
+            .eq('status', 'active')
+            .order('created_at', { ascending: false })
+            .limit(1)
             .single();
 
-          if (subscription && subscription.status === 'active') {
+          if (subscription && !error) {
             setCurrentPlan(subscription.plan_name);
           }
         }
+        setIsLoading(false);
       } catch (error) {
-        console.error('Error fetching subscription:', error);
-      } finally {
+        console.error('Error fetching plan:', error);
         setIsLoading(false);
       }
     };
