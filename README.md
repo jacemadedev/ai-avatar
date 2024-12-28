@@ -14,6 +14,24 @@ A modern web application built with Next.js 15, TypeScript, and Supabase, featur
 - Husky for Git hooks
 - Automatic sitemap generation
 
+## 📋 Screenshots
+
+### Avatar Creation
+![Choose your avatar](/public/screenshots/Choose%20Avatar.png)
+Create your personalized AI avatar with our intuitive interface.
+
+### Script Generation
+![Enter script or prompt](/public/screenshots/Enter%20Script:Prompt.png)
+Write your script or use AI-powered prompts to generate video content.
+
+### Video History
+![Video history with Supabase](/public/screenshots/History:Supabase.png)
+Track and manage your video creation history, powered by Supabase.
+
+### Pricing Plans
+![Pricing plans with Stripe](/public/screenshots/Pricing:Stripe.png)
+Choose from flexible pricing plans with secure Stripe payment integration.
+
 ## 📋 Prerequisites
 
 - Node.js (Latest LTS version recommended)
